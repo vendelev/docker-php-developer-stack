@@ -1,0 +1,81 @@
+version: '2'
+
+services:
+    mariadb10:
+        image: choobs/mariadb:latest
+        restart: always
+        environment:
+            - MYSQL_ROOT_PASSWORD=123
+        ports:
+             - "3306:3306"
+        volumes:
+            - ./data/mariadb10:/var/lib/mysql
+            - ./config/localtime:/etc/localtime
+    pinba:
+        image: choobs/mariadb:pinba
+        restart: always
+        environment:
+            - MYSQL_ROOT_PASSWORD=123
+        ports:
+             - "3307:3306"
+        volumes:
+            - ./data/pinba:/var/lib/mysql
+            - ./config/localtime:/etc/localtime
+    jinba:
+        image: node:latest
+        restart: always
+        depends_on:
+            - pinba
+        links:
+            - pinba
+        volumes:
+            - ./src/jinba:/var/www/jinba:rw
+            - ./config/localtime:/etc/localtime
+        working_dir: /var/www/jinba
+        command: ["/bin/sh", "-c", "npm install && node index.js"]
+    pinboard:
+        image: vendelev/pinboard:latest
+        restart: always
+        depends_on:
+            - pinba
+        links:
+            - pinba
+        volumes:
+            - ./config/pinboard/php.ini:/etc/php5/fpm/conf.d/99-custom.ini
+            - ./config/pinboard/parameters.yml:/var/www/pinboard/config/parameters.yml
+            - ./logs:/var/www/logs:rw
+            - ./config/localtime:/etc/localtime
+        working_dir: /var/www/pinboard
+    php7:
+        image: vendelev/php7-pinba
+        restart: always
+        depends_on:
+            - pinba
+            - mariadb10
+        links:
+            - pinba
+            - mariadb10
+        volumes:
+            - ./config/php/pinba.ini:/etc/php/7.0/fpm/conf.d/20-pinba.ini
+            - ./config/php/pinba.ini:/etc/php/7.0/cli/conf.d/20-pinba.ini
+            - ./src/php:/var/www/site:rw
+            - ./config/localtime:/etc/localtime
+        working_dir: /var/www/site
+    proxy:
+        image: nginx:latest
+        restart: always
+        ports:
+            - "80:80"
+        depends_on:
+            - jinba
+            - pinboard
+            - php7
+        links:
+            - jinba
+            - pinboard
+            - php7
+        volumes:
+            - ./config/nginx/sites.conf:/etc/nginx/conf.d/sites.conf
+            - ./logs:/var/www/logs
+            - ./src/php:/var/www/site:rw
+            - ./config/localtime:/etc/localtime
