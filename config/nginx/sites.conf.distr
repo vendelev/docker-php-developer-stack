@@ -1,11 +1,8 @@
 server {
-    server_name monitor.local;
+    server_name jinba.local;
     listen 80;
-
-    access_log  /var/www/logs/monitor-access.log;
-    error_log   /var/www/logs/monitor-error.log;
  
-    location /jinba/ {
+    location / {
         root /var/www;
 
         access_log  off; #/var/www/logs/proxy-jinba-access.log;
@@ -18,8 +15,13 @@ server {
         proxy_pass_header Set-Cookie;
         proxy_redirect off;
     }
+}
 
-    location /pinboard/ {
+server {
+    server_name pinboard.local;
+    listen 80;
+
+    location / {
         root /var/www;
 
         access_log  off; #/var/www/logs/proxy-pinboard_access.log;
