@@ -22,7 +22,11 @@ services:
             - ./data/pinba:/var/lib/mysql
             - ./config/localtime:/etc/localtime
     jinba:
-        image: node:latest
+        build:
+            context: ./config/node
+            args:
+                - TIMEZONE=Europe/Moscow
+        image: node-jinba
         restart: always
         depends_on:
             - pinba
@@ -47,7 +51,11 @@ services:
             - ./config/localtime:/etc/localtime
         working_dir: /var/www/pinboard
     php7:
-        image: vendelev/php7-pinba
+        build:
+            context: ./config/php
+            args:
+                - TIMEZONE=Europe/Moscow
+        image: php7-pinba
         restart: always
         depends_on:
             - pinba
@@ -56,13 +64,11 @@ services:
             - pinba
             - mariadb10
         volumes:
-            - ./config/php/pinba.ini:/etc/php/7.0/fpm/conf.d/20-pinba.ini
-            - ./config/php/pinba.ini:/etc/php/7.0/cli/conf.d/20-pinba.ini
-            - ./src/php:/var/www/site:rw
-            - ./config/localtime:/etc/localtime
-        working_dir: /var/www/site
+            - ./config/php/pinba.ini:/etc/php7/conf.d/20-pinba.ini
+            - ./config/php/xdebug.ini:/etc/php7/conf.d/xdebug.ini
+            - ./src/php:/var/www/web:rw
     proxy:
-        image: nginx:latest
+        image: nginx:alpine
         restart: always
         ports:
             - "80:80"
@@ -77,5 +83,5 @@ services:
         volumes:
             - ./config/nginx/sites.conf:/etc/nginx/conf.d/sites.conf
             - ./logs:/var/www/logs
-            - ./src/php:/var/www/site:rw
+            - ./src/php:/var/www/web:rw
             - ./config/localtime:/etc/localtime
