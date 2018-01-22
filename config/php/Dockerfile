@@ -20,6 +20,7 @@ RUN apk add tzdata \
             php7-mbstring \
             php7-iconv \
             php7-mysqli \
+            php7-pdo_mysql \
             php7-gd \
             php7-json \
             php7-memcached \
