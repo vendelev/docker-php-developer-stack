@@ -63,13 +63,12 @@ RUN apk add tzdata \
     && ./configure --enable-pinba \
     && make install \
 # Clean
-    && apk del tzdata \
-            git \
-            g++ \
-            gcc \
-            make \
-            re2c \
-            autoconf \
+    && apk del \
+        g++ \
+        gcc \
+        make \
+        re2c \
+        autoconf \
     && rm -fr /var/cache/apk/* \
     && rm -fr /tmp/pinba_extension
 
